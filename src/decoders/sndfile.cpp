@@ -85,13 +85,16 @@ class SndFileDecoder final : public Decoder {
 
     ChannelConfig mChannelConfig{ChannelConfig::Mono};
     SampleType mSampleType{SampleType::UInt8};
+    bool mHasLoopPts{false};
     std::pair<uint64_t, uint64_t> mLoopPts{0, 0};
 
 public:
     SndFileDecoder(UniquePtr<std::istream> file, SndfilePtr sndfile, const SF_INFO &sndinfo,
-                   ChannelConfig sconfig, SampleType stype, uint64_t loopstart, uint64_t loopend) noexcept
+                   ChannelConfig sconfig, SampleType stype, uint64_t loopstart, uint64_t loopend,
+                   bool hasloop) noexcept
       : mFile(std::move(file)), mSndFile(std::move(sndfile)), mSndInfo(sndinfo)
       , mChannelConfig(sconfig), mSampleType(stype), mLoopPts{loopstart, loopend}
+      , mHasLoopPts{hasloop}
     { }
     ~SndFileDecoder() override { }
 
@@ -102,6 +105,7 @@ public:
     uint64_t getLength() const noexcept override;
     bool seek(uint64_t pos) noexcept override;
 
+    bool hasLoopPoints() const noexcept override;
     std::pair<uint64_t,uint64_t> getLoopPoints() const noexcept override;
 
     ALuint read(ALvoid *ptr, ALuint count) noexcept override;
@@ -122,6 +126,8 @@ bool SndFileDecoder::seek(uint64_t pos) noexcept
     if(newpos < 0) return false;
     return true;
 }
+
+bool SndFileDecoder::hasLoopPoints() const noexcept { return mHasLoopPts; }
 
 std::pair<uint64_t, uint64_t> SndFileDecoder::getLoopPoints() const noexcept { return mLoopPts; }
 
@@ -157,6 +163,7 @@ SharedPtr<Decoder> SndFileDecoderFactory::createDecoder(UniquePtr<std::istream> 
     SndfilePtr sndfile(sf_open_virtual(&vio, SFM_READ, &sndinfo, file.get()));
     if(!sndfile) return nullptr;
 
+    bool has_cues = false;
     std::pair<uint64_t, uint64_t> cue_points{0, std::numeric_limits<uint64_t>::max()};
     {
         // Needed for compatibility with older sndfile libraries.
@@ -179,6 +186,7 @@ SharedPtr<Decoder> SndFileDecoderFactory::createDecoder(UniquePtr<std::istream> 
 
         if(sf_command(sndfile.get(), SNDFILE_GET_CUE, &cues, sizeof(cues)))
         {
+            has_cues = true;
             cue_points.first = cues.cue_points[0].sample_offset;
             if(cues.cue_count > 1)
             {
@@ -257,7 +265,7 @@ SharedPtr<Decoder> SndFileDecoderFactory::createDecoder(UniquePtr<std::istream> 
     }
 
     return MakeShared<SndFileDecoder>(std::move(file), std::move(sndfile), sndinfo, sconfig, stype,
-        cue_points.first, cue_points.second);
+        cue_points.first, cue_points.second, has_cues);
 }
 
 } // namespace alure
