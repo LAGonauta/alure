@@ -80,6 +80,8 @@ class Mp3Decoder final : public Decoder {
     ChannelConfig mChannels{ChannelConfig::Mono};
     SampleType mSampleType{SampleType::UInt8};
     int mSampleRate{0};
+    bool mHasLoopPts{false};
+    std::pair<uint64_t, uint64_t> mLoopPts{0, 0};
 
 public:
     Mp3Decoder(UniquePtr<std::istream> file, Vector<uint8_t>&& initial_data,
@@ -97,6 +99,7 @@ public:
     uint64_t getLength() const noexcept override;
     bool seek(uint64_t pos) noexcept override;
 
+    bool hasLoopPoints() const noexcept override;
     std::pair<uint64_t,uint64_t> getLoopPoints() const noexcept override;
 
     ALuint read(ALvoid *ptr, ALuint count) noexcept override;
@@ -252,6 +255,8 @@ bool Mp3Decoder::seek(uint64_t pos) noexcept
     mFile->seekg(oldfpos);
     return false;
 }
+
+bool Mp3Decoder::hasLoopPoints() const noexcept { return mHasLoopPts; }
 
 std::pair<uint64_t,uint64_t> Mp3Decoder::getLoopPoints() const noexcept
 {

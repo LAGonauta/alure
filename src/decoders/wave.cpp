@@ -84,6 +84,7 @@ class WaveDecoder final : public Decoder {
 
     // In sample frames, relative to sample data start
     std::pair<uint64_t,uint64_t> mLoopPts{0, 0};
+    bool mHasLoopPts{false};
 
     // In bytes from beginning of file
     std::istream::pos_type mStart{0}, mEnd{0};
@@ -92,9 +93,13 @@ class WaveDecoder final : public Decoder {
 public:
     WaveDecoder(UniquePtr<std::istream> file, ChannelConfig channels, SampleType type,
                 ALuint frequency, ALuint framesize, std::istream::pos_type start,
-                std::istream::pos_type end, uint64_t loopstart, uint64_t loopend) noexcept
+                std::istream::pos_type end, uint64_t loopstart, uint64_t loopend, bool hasLoopPts) noexcept
       : mFile(std::move(file)), mChannelConfig(channels), mSampleType(type), mFrequency(frequency)
-      , mFrameSize(framesize), mLoopPts{loopstart,loopend}, mStart(start), mEnd(end)
+      , mFrameSize(framesize)
+      , mLoopPts{loopstart, loopend}
+      , mStart(start)
+      , mEnd(end)
+      , mHasLoopPts{hasLoopPts}
     { mCurrentPos = mFile->tellg(); }
     ~WaveDecoder() override { }
 
@@ -105,6 +110,7 @@ public:
     uint64_t getLength() const noexcept override;
     bool seek(uint64_t pos) noexcept override;
 
+    bool hasLoopPoints() const noexcept override;
     std::pair<uint64_t,uint64_t> getLoopPoints() const noexcept override;
 
     ALuint read(ALvoid *ptr, ALuint count) noexcept override;
@@ -126,6 +132,8 @@ bool WaveDecoder::seek(uint64_t pos) noexcept
     mCurrentPos = offset;
     return true;
 }
+
+bool WaveDecoder::hasLoopPoints() const noexcept { return mHasLoopPts; }
 
 std::pair<uint64_t,uint64_t> WaveDecoder::getLoopPoints() const noexcept { return mLoopPts; }
 
@@ -416,10 +424,14 @@ SharedPtr<Decoder> WaveDecoderFactory::createDecoder(UniquePtr<std::istream> &fi
             {
                 /* Loop points are byte offsets relative to the data start.
                  * Convert to sample frame offsets. */
+                bool hasLoopPts = false;
+                if(loop_pts[0] > 0)
+                    hasLoopPts = true;
                 return MakeShared<WaveDecoder>(std::move(file),
                     channels, type, frequency, framesize, start, end,
                     loop_pts[0] / blockalign * framealign,
-                    loop_pts[1] / blockalign * framealign
+                    loop_pts[1] / blockalign * framealign,
+                    hasLoopPts
                 );
             }
         }

@@ -138,9 +138,9 @@ ALuint SndFileDecoder::read(ALvoid *ptr, ALuint count) noexcept
     {
         case SampleType::Mulaw:
         case SampleType::UInt8:
-            got = sf_read_raw(mSndFile.get(), static_cast<ALubyte *>(ptr),
-                FramesToBytes(count, mChannelConfig, mSampleType));
-            got = BytesToFrames(got, mChannelConfig, mSampleType);
+            got = BytesToFrames(sf_read_raw(mSndFile.get(), static_cast<ALubyte *>(ptr),
+                                FramesToBytes(count, mChannelConfig, mSampleType)),
+                                mChannelConfig, mSampleType);
             break;
         case SampleType::Int16:
             got = sf_readf_short(mSndFile.get(), static_cast<short *>(ptr), count);
