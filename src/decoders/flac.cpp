@@ -31,6 +31,7 @@ class FlacDecoder final : public Decoder {
     ChannelConfig mChannelConfig{ChannelConfig::Mono};
     SampleType mSampleType{SampleType::UInt8};
     ALuint mFrequency{0};
+    bool mHasLoopPts {false};
     std::pair<uint64_t,uint64_t> mLoopPts{0, 0};
 
     static void MetadataCallback(void *client_data, drflac_metadata *mdata)
@@ -80,6 +81,7 @@ class FlacDecoder final : public Decoder {
                 // and LOOP_END. We can recognize both.
                 if(key == "LOOP_START" || key == "LOOPSTART")
                 {
+                    self->mHasLoopPts = true;
                     auto pt = ParseTimeval(val, self->mFrequency);
                     if(pt.index() == 1) self->mLoopPts.first = std::get<1>(pt);
                     continue;
@@ -87,6 +89,7 @@ class FlacDecoder final : public Decoder {
 
                 if(key == "LOOP_END")
                 {
+                    self->mHasLoopPts = true;
                     auto pt = ParseTimeval(val, self->mFrequency);
                     if(pt.index() == 1) self->mLoopPts.second = std::get<1>(pt);
                     continue;
@@ -135,7 +138,9 @@ public:
     uint64_t getLength() const noexcept override;
     bool seek(uint64_t pos) noexcept override;
 
-    std::pair<uint64_t,uint64_t> getLoopPoints() const noexcept override;
+    std::pair<uint64_t, uint64_t> getLoopPoints() const noexcept override;
+
+    bool hasLoopPoints() const noexcept override;
 
     ALuint read(ALvoid *ptr, ALuint count) noexcept override;
 };
@@ -192,6 +197,11 @@ bool FlacDecoder::seek(uint64_t pos) noexcept
 std::pair<uint64_t,uint64_t> FlacDecoder::getLoopPoints() const noexcept
 {
     return mLoopPts;
+}
+
+bool FlacDecoder::hasLoopPoints() const noexcept
+{
+    return mHasLoopPts;
 }
 
 ALuint FlacDecoder::read(ALvoid *ptr, ALuint count) noexcept
