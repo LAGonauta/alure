@@ -18,6 +18,10 @@ include(GNUInstallDirs)
 find_package(OpenAL REQUIRED)
 find_package(Threads)
 
+# Require C++14
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+
 set(CXX_FLAGS )
 
 option(ALURE_DISABLE_RTTI "Disable run-time type information" OFF)
@@ -29,11 +33,6 @@ if(MSVC)
         endif()
     endif()
 else()
-    check_cxx_compiler_flag(-std=c++11 HAVE_STD_CXX11)
-    if(HAVE_STD_CXX11)
-        set(CXX_FLAGS -std=c++11 ${CXX_FLAGS})
-    endif()
-
     check_cxx_compiler_flag(-Wall HAVE_WALL_SWITCH)
     if(HAVE_WALL_SWITCH)
         set(CXX_FLAGS ${CXX_FLAGS} -Wall)
@@ -268,6 +267,10 @@ if(ALURE_BUILD_EXAMPLES)
     add_executable(alure-play examples/alure-play.cpp)
     target_compile_options(alure-play PRIVATE ${CXX_FLAGS})
     target_link_libraries(alure-play PRIVATE ${MAIN_TARGET} ${LINKER_OPTS})
+
+    add_executable(alure-play3d examples/alure-play3d.cpp)
+    target_compile_options(alure-play3d PRIVATE ${CXX_FLAGS})
+    target_link_libraries(alure-play3d PRIVATE ${MAIN_TARGET} ${LINKER_OPTS})
 
     add_executable(alure-stream examples/alure-stream.cpp)
     target_compile_options(alure-stream PRIVATE ${CXX_FLAGS})

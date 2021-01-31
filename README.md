@@ -1,7 +1,12 @@
 Alure
 =====
+[![AppVeyor][AppVeyor Badge]][AppVeyor URL]
+[![Travis][Travis Badge]][Travis URL]
 
-[![Build Status](https://api.travis-ci.org/kcat/alure.svg)](https://travis-ci.org/kcat/alure)
+[AppVeyor Badge]: https://ci.appveyor.com/api/projects/status/github/kcat/alure?branch=master&svg=true
+[AppVeyor URL]: https://ci.appveyor.com/project/ChrisRobinson/alure/branch/master
+[Travis Badge]: https://api.travis-ci.org/kcat/alure.svg
+[Travis URL]: https://travis-ci.org/kcat/alure
 
 Alure is a C++ 3D audio API. It uses OpenAL for audio rendering, and provides
 common higher-level features such as file loading and decoding, buffer caching,
@@ -10,7 +15,6 @@ source handles.
 
 Features
 --------
-
 Alure supports 3D sound rendering based on standard OpenAL features. Extra 3D
 sound features may be available depending on the extensions supported by OpenAL
 (newer versions of OpenAL Soft provide the necessary extensions and is thus
@@ -31,35 +35,33 @@ support basic PCM formats, as well as built-in decoders for FLAC (dr_flac) and
 MP3 (minimp3). Application-defined decoders are also supported in case the
 default set are insufficient.
 
-And much more...
+And much more…
 
 Building
 --------
-
-#### - Dependencies -
+### Dependencies
 Before even building, Alure requires the OpenAL development files installed,
 for example, through Creative's OpenAL SDK (available from openal.org) or from
-OpenAL Soft. Additionally you will need a C++11 or above compliant compiler to
+OpenAL Soft. Additionally you will need a C++14 or above compliant compiler to
 be able to build Alure.
 
 These following dependencies are only needed to *automatically* support the
-formats they handle;
+formats they handle:
 
-* [ogg](https://xiph.org/ogg/) : ogg playback
-* [vorbis](https://xiph.org/vorbis/) : ogg vorbis playback
-* [opusfile](http://opus-codec.org/) : opus playback
-* [SndFile](http://www.mega-nerd.com/libsndfile/) : various multi-format playback
+* [ogg](https://xiph.org/ogg/): ogg playback
+* [vorbis](https://xiph.org/vorbis/): ogg vorbis playback
+* [opusfile](http://opus-codec.org/): opus playback
+* [SndFile](http://www.mega-nerd.com/libsndfile/): various multi-format playback
 
 Two of the packaged examples require the following dependencies to be built.
 
-* [PhysFS](https://icculus.org/physfs/) : alure-physfs
-* [dumb](https://github.com/kode54/dumb) : alure-dumb
+* [PhysFS](https://icculus.org/physfs/): alure-physfs
+* [dumb](https://github.com/kode54/dumb): alure-dumb
 
 If any dependency isn't found at build time the relevant decoders or examples
 will be disabled and skipped during build.
 
-#### - Windows -
-
+### On Windows
 If your are using [MinGW-w64](https://mingw-w64.org/doku.php), the easiest way
 to get all of the dependencies above is to use [MSYS2](http://www.msys2.org/),
 which has up-to-date binaries for all of the optional and required dependencies
@@ -77,16 +79,12 @@ cmake file for Alure requires you to use the direct directory where OpenAL Soft
 headers are located (so instead of `msys/mingw64/include`, it's
 `msys/mingw64/include/AL`).
 
-After cmake generation you should have something that looks like the following
-output if you have every single dependency:
+Inside the `build` directory, run `cmake ..`. After CMake generation
+you should have something that looks like the following output
+if you have every single dependency:
 
     -- Found OpenAL: C:/msys64/mingw64/lib/libopenal.dll.a
-    -- Performing Test HAVE_STD_CXX11
-    -- Performing Test HAVE_STD_CXX11 - Success
-    -- Performing Test HAVE_WALL_SWITCH
-    -- Performing Test HAVE_WALL_SWITCH - Success
-    -- Performing Test HAVE_WEXTRA_SWITCH
-    -- Performing Test HAVE_WEXTRA_SWITCH - Success
+    -- Found Threads: TRUE
     -- Found OGG: C:/msys64/mingw64/lib/libogg.dll.a
     -- Found VORBIS: C:/msys64/mingw64/lib/libvorbisfile.dll.a
     -- Found OPUS: C:/msys64/mingw64/lib/libopusfile.dll.a
@@ -95,47 +93,29 @@ output if you have every single dependency:
     -- Found DUMB: C:/msys64/mingw64/lib/libdumb.dll.a
     -- Configuring done
     -- Generating done
-    -- Build files have been written to: .../alure/cmake-build-debug
+    -- Build files have been written to: .../alure/build
 
+Now you may compile the library and examples by running `cmake --build .`.
+Use `cmake --install .`, which probably requires administrative privilege,
+to install Alure library in `C:\Program Files (x86)` for it to be available
+on your system.
 
-Use `make install` to install Alure library in `C:\Program Files (x86)` for it
-to be available on your system. Otherwise simply run `make` to build the
-library and each example you have the dependencies for. Note if you use mingw
-(or mingw-w64, the name is the same for both) you may need to use
-`mingw32-make.exe` instead of `make`, and make sure that file is located in
-your path.  Note you may need to run `make install` as admin.
+### On GNU/Linux
+On Debian-based systems, the library's dependencies can be installed using
 
-#### - Linux -
+    apt install libopenal-dev libvorbis-dev libopusfile-dev libsndfile1-dev
 
-If you are using Ubuntu, many of the pre-requisites may be installed, however
-you may find that many of the header files are not.  Here is the full list of
-packages that must be installed. The list is in the format:
+Optional dependencies for examples might be install via
 
->[dependency name]: [library package name], [header package name]
+    apt install libphysfs-dev libdumb1-dev
 
-* openal-soft : libopenal1, libopenal-dev
-* ogg : libogg0, libogg-dev
-* vorbis : libvorbis0a, libvorbis-dev
-* opusfile : libopusfule0, libopusfile-dev
-* SndFile : libsndfile1, libsndfile1-dev
-* physfs : libphysfs1, libphysfs1-dev
-* dumb : libdumb1, libdumb1-dev
+On other distributions, the packages names can be adapted similarly.
 
-For each package pair, run `sudo apt-get install [packagename]`. After doing so
-you should get a cmake output that looks something like:
-
+Then inside `build`, the output of `cmake ..` should contains lines similar to
+the following
 
     -- Found OpenAL: /usr/lib/x86_64-linux-gnu/libopenal.so
-    -- Performing Test HAVE_STD_CXX11
-    -- Performing Test HAVE_STD_CXX11 - Success
-    -- Performing Test HAVE_WALL_SWITCH
-    -- Performing Test HAVE_WALL_SWITCH - Success
-    -- Performing Test HAVE_WEXTRA_SWITCH
-    -- Performing Test HAVE_WEXTRA_SWITCH - Success
-    -- Performing Test HAVE_GCC_DEFAULT_VISIBILITY
-    -- Performing Test HAVE_GCC_DEFAULT_VISIBILITY - Success
-    -- Performing Test HAVE_VISIBILITY_HIDDEN_SWITCH
-    -- Performing Test HAVE_VISIBILITY_HIDDEN_SWITCH - Success
+    -- Found Threads: TRUE
     -- Found OGG: /usr/lib/x86_64-linux-gnu/libogg.so
     -- Found VORBIS: /usr/lib/x86_64-linux-gnu/libvorbisfile.so
     -- Found OPUS: /usr/lib/libopusfile.so
@@ -144,13 +124,46 @@ you should get a cmake output that looks something like:
     -- Found DUMB: /usr/lib/x86_64-linux-gnu/libdumb.so
     -- Configuring done
     -- Generating done
-    -- Build files have been written to: .../alure/cmake-build-debug
+    -- Build files have been written to: .../alure/build
 
-Use `sudo make install` to install Alure library on your system. Otherwise
-simply run `make` to build the library and each example you have the
-dependencies for.
+To build the library and each example you have the dependencies for,
+run `cmake --build . --parallel $(nproc)`.  Use `sudo cmake --install .`
+to install Alure library on your system.
 
-#### - OSX - 
+### On macOS
+OpenAL is provided by Apple via [Core Audio], while optional codecs and
+examples' dependencies are available on [Homebrew](https://brew.sh/):
 
-TODO
+    brew install libvorbis opusfile libsndfile
+    brew install phyfs dumb
 
+Then inside `build`, the output of `cmake ..` should contains lines similar to
+the following
+
+    -- Found OpenAL: /System/Library/Frameworks/OpenAL.framework
+    -- Found Threads: TRUE
+    -- Found OGG: /usr/local/lib/libogg.dylib
+    -- Found VORBIS: /usr/local/lib/libvorbisfile.dylib
+    -- Found OPUS: /usr/local/lib/libopusfile.dylib
+    -- Found SndFile: /usr/local/lib/libsndfile.dylib
+    -- Found PhysFS: /usr/local/lib/libphysfs.dylib
+    -- Found DUMB: /usr/local/lib/libdumb.a
+    -- Configuring done
+    -- Generating done
+    -- Build files have been written to: .../alure/build
+
+If OpenAL Soft is preferred, one may install it from Homebrew and specify
+CMake prefix path accordingly
+
+    brew install openal-soft
+    OPENALDIR=`brew --prefix openal-soft` cmake -DCMAKE_FIND_FRAMEWORK=NEVER ..
+
+and get
+
+    -- Found OpenAL: /usr/local/opt/openal-soft/lib/libopenal.dylib
+
+To build the library and each example you have the dependencies for,
+run `cmake --build . --parallel $(sysctl -n hw.ncpu)`.
+Use `sudo cmake --install .` to install Alure library on your system.
+
+[Core Audio]: https://developer.apple.com/library/archive/documentation/MusicAudio/Conceptual/CoreAudioOverview/WhatsinCoreAudio/WhatsinCoreAudio.html
